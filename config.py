@@ -26,3 +26,14 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 WEBHOOK_BASE_URL = os.getenv("WEBHOOK_BASE_URL") or os.getenv("RENDER_EXTERNAL_URL")
 WEBHOOK_SECRET = hashlib.sha256(BOT_TOKEN.encode()).hexdigest()
 PORT = int(os.getenv("PORT", "10000"))
+
+RELAY_DAILY_LIMIT = int(os.getenv("RELAY_DAILY_LIMIT", "30"))  # сообщений гостя жильцам в день
+
+RULES = (
+    "У нас в комнате 311 карантин: зайти можно только по заявке, которую одобрили жильцы.\n"
+    f"• Заявку рассматривают {len(ADMIN_IDS)} жильцов, нужно {REQUIRED_APPROVALS} одобрения.\n"
+    f"• Принимаем с {VISIT_FROM} до {VISIT_TO}, заявку нужно подать минимум за {MIN_LEAD_MINUTES} мин.\n"
+    f"• Не больше {MAX_REQUESTS_PER_DAY} заявок в день и одна активная заявка за раз.\n"
+    "• После одобрения придёт 4-значный код: покажи его у двери.\n"
+    "• Жильцы могут написать причину решения — она придёт тебе вместе с ответом."
+)
