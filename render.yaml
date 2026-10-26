@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: block311-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: TIMEZONE
+        value: Europe/Moscow
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
