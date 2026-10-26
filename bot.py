@@ -26,7 +26,7 @@ from aiogram.types import (
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 import config
-from db import get_setting, q, set_setting
+from db import PG, get_setting, q, set_setting
 
 log = logging.getLogger("block311")
 router = Router()
@@ -424,8 +424,13 @@ async def unblock_cmd(m: Message):
 @router.message(Command("help"))
 @admin_only
 async def admin_help(m: Message):
+    stats = ", ".join(
+        f"{STATUS_RU[x['status']]}: {x['c']}" for x in q("SELECT status, COUNT(*) c FROM requests GROUP BY status").fetchall()
+    )
     await m.answer(
-        "Всё есть в кнопках меню. Команды: /requests, /today, /check КОД, /pause, /resume, /block ID, /unblock ID."
+        "Всё есть в кнопках меню. Команды: /requests, /today, /check КОД, /pause, /resume, /block ID, /unblock ID.\n\n"
+        f"🗄 База: {'Postgres (данные сохраняются)' if PG else '⚠️ SQLite-файл (на Render пропадёт при перезапуске!)'}\n"
+        f"Заявок в базе: {stats or 'нет'}"
     )
 
 
@@ -921,6 +926,7 @@ async def run_webhook(bot: Bot, dp: Dispatcher):
 
 async def main():
     logging.basicConfig(level=logging.INFO)
+    log.info("database: %s", "postgres" if PG else "sqlite file (data is lost on Render restarts!)")
     bot = Bot(config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     dp.include_router(router)
