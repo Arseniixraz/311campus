@@ -16,6 +16,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import (
     CallbackQuery,
+    ErrorEvent,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     KeyboardButton,
@@ -845,6 +846,24 @@ async def unknown_text(m: Message, state: FSMContext):
 @router.callback_query()
 async def stale_button(c: CallbackQuery):
     await c.answer("Эта кнопка устарела", show_alert=True)
+
+
+@router.errors()
+async def on_error(event: ErrorEvent):
+    log.error("handler failed", exc_info=event.exception)
+    src = event.update.callback_query or event.update.message
+    if not src:
+        return
+    text = "⚠️ Что-то пошло не так, попробуй ещё раз."
+    if is_admin(src.from_user.id):  # админу показываем причину, чтобы не лезть в логи
+        text = f"⚠️ Ошибка: {type(event.exception).__name__}: {str(event.exception)[:200]}"
+    try:
+        if event.update.callback_query:
+            await src.answer(text, show_alert=True)
+        else:
+            await src.answer(text)
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------- background
